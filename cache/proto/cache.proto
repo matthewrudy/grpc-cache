@@ -1,0 +1,25 @@
+
+syntax = "proto3";
+package cache;
+
+service Cache {
+  rpc Put(PutRequest) returns (PutResponse) {};
+  rpc Get(GetRequest) returns (GetResponse) {};
+}
+
+message PutRequest {
+  string key = 1;
+  bytes val = 2;
+}
+
+message PutResponse {
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  string key = 1;
+  bytes val = 2;
+}
