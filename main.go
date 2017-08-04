@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"log"
 	"time"
 
 	proto "github.com/matthewrudy/grpc-cache/cache/proto"
@@ -12,8 +11,7 @@ import (
 
 func main() {
 	if err := runClient(); err != nil {
-		fmt.Printf("error: %s\n", err)
-		os.Exit(1)
+		log.Fatalf("error: %s\n", err)
 	}
 }
 
@@ -29,7 +27,7 @@ func get(cache proto.CacheClient, key string) error {
 		return err
 	}
 
-	fmt.Printf("get key=%s val=%s\n", resp.GetKey(), resp.GetVal())
+	log.Printf("get key=%s val=%s", resp.GetKey(), resp.GetVal())
 	return nil
 }
 
@@ -43,7 +41,7 @@ func put(cache proto.CacheClient, key string, val string) error {
 		return err
 	}
 
-	fmt.Printf("put key=%s val=%s\n", key, val)
+	log.Printf("put key=%s val=%s", key, val)
 	return nil
 }
 
@@ -56,10 +54,18 @@ func runClient() error {
 
 	cache := proto.NewCacheClient(conn)
 
-	get(cache, "foo")
-	put(cache, "foo", "bar")
-	get(cache, "foo")
-	get(cache, "sleep")
+	if err = get(cache, "foo"); err != nil {
+		log.Fatalf("getting foo failed: %v", err)
+	}
+	if err = put(cache, "foo", "bar"); err != nil {
+		log.Fatalf("setting foo failed: %v", err)
+	}
+	if err = get(cache, "foo"); err != nil {
+		log.Fatalf("getting foo failed: %v", err)
+	}
+	if err = get(cache, "sleep"); err != nil {
+		log.Fatalf("getting sleep failed: %v", err)
+	}
 
 	return nil
 }
