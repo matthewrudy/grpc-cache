@@ -55,16 +55,16 @@ func runClient() error {
 	cache := proto.NewCacheClient(conn)
 
 	if err = get(cache, "foo"); err != nil {
-		log.Fatalf("getting foo failed: %v", err)
+		log.Printf("getting foo failed: %v", err)
 	}
 	if err = put(cache, "foo", "bar"); err != nil {
-		log.Fatalf("setting foo failed: %v", err)
+		log.Printf("setting foo failed: %v", err)
 	}
 	if err = get(cache, "foo"); err != nil {
-		log.Fatalf("getting foo failed: %v", err)
+		log.Printf("getting foo failed: %v", err)
 	}
 	if err = get(cache, "sleep"); err != nil {
-		log.Fatalf("getting sleep failed: %v", err)
+		log.Printf("getting sleep failed: %v", err)
 	}
 
 	return nil

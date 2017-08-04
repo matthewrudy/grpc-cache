@@ -6,6 +6,8 @@ import (
 
 	proto "github.com/matthewrudy/grpc-cache/cache/proto"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func NewService() proto.CacheServer {
@@ -26,7 +28,10 @@ func (service *cacheService) Get(ctx context.Context, req *proto.GetRequest) (*p
 		time.Sleep(time.Second * 10)
 	}
 
-	val := service.cache[key]
+	val, ok := service.cache[key]
+	if !ok {
+		return nil, status.Errorf(codes.NotFound, "key not found %s", key)
+	}
 	fmt.Printf("get key=%s val=%s\n", key, val)
 	return &proto.GetResponse{
 		Key: key,
