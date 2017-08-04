@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	proto "github.com/matthewrudy/grpc-cache/cache/proto"
@@ -17,6 +18,7 @@ func NewService() proto.CacheServer {
 }
 
 type cacheService struct {
+	sync.Mutex
 	cache map[string][]byte
 }
 
@@ -28,7 +30,10 @@ func (service *cacheService) Get(ctx context.Context, req *proto.GetRequest) (*p
 		time.Sleep(time.Second * 10)
 	}
 
+	service.Lock()
 	val, ok := service.cache[key]
+	service.Unlock()
+
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "key not found %s", key)
 	}
@@ -44,6 +49,9 @@ func (service *cacheService) Put(ctx context.Context, req *proto.PutRequest) (*p
 	val := req.GetVal()
 	fmt.Printf("set key=%s val=%s\n", key, val)
 
+	service.Lock()
 	service.cache[key] = val
+	service.Unlock()
+
 	return &proto.PutResponse{}, nil
 }
