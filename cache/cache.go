@@ -13,13 +13,33 @@ import (
 
 func NewService() proto.CacheServer {
 	return &cacheService{
-		cache: make(map[string][]byte),
+		cacheStore: cacheStore{
+			store: make(map[string][]byte),
+		},
 	}
 }
 
-type cacheService struct {
+type cacheStore struct {
 	sync.RWMutex
-	cache map[string][]byte
+	store map[string][]byte
+}
+
+func (c *cacheStore) get(key string) ([]byte, bool) {
+	c.RLock()
+	defer c.RUnlock()
+	val, ok := c.store[key]
+	return val, ok
+}
+
+func (c *cacheStore) set(key string, val []byte) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.store[key] = val
+}
+
+type cacheService struct {
+	cacheStore
 }
 
 func (service *cacheService) Get(ctx context.Context, req *proto.GetRequest) (*proto.GetResponse, error) {
@@ -30,9 +50,7 @@ func (service *cacheService) Get(ctx context.Context, req *proto.GetRequest) (*p
 		time.Sleep(time.Second * 10)
 	}
 
-	service.RLock()
-	val, ok := service.cache[key]
-	service.RUnlock()
+	val, ok := service.cacheStore.get(key)
 
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "key not found %s", key)
@@ -49,9 +67,7 @@ func (service *cacheService) Put(ctx context.Context, req *proto.PutRequest) (*p
 	val := req.GetVal()
 	fmt.Printf("set key=%s val=%s\n", key, val)
 
-	service.Lock()
-	service.cache[key] = val
-	service.Unlock()
+	service.cacheStore.set(key, val)
 
 	return &proto.PutResponse{}, nil
 }
