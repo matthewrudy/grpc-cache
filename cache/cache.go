@@ -18,7 +18,7 @@ func NewService() proto.CacheServer {
 }
 
 type cacheService struct {
-	sync.Mutex
+	sync.RWMutex
 	cache map[string][]byte
 }
 
@@ -30,9 +30,9 @@ func (service *cacheService) Get(ctx context.Context, req *proto.GetRequest) (*p
 		time.Sleep(time.Second * 10)
 	}
 
-	service.Lock()
+	service.RLock()
 	val, ok := service.cache[key]
-	service.Unlock()
+	service.RUnlock()
 
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "key not found %s", key)
